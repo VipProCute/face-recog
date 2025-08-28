@@ -1,7 +1,8 @@
 # Thông tin các File
 
 ## Các file cần thiết để chạy:
-Tất cả đã được để trong folder FaceRecognition-FAISS
+Tất cả đã được để trong folder [FaceRecognition-FAISS](./FaceRecognition-FAISS)
+
 Đưa tất cả file trong folder trên vào máy ssh nếu chưa có. Hiện tại trên SOM đã có các file này. 
 
 ## 🚀 Hướng dẫn chạy ứng dụng
@@ -12,6 +13,7 @@ ssh itri@10.60.3.235
 
 ### Thiết lập biến môi trường
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/itri/Working/prebuilt/opencv/lib
+
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD
 
 ### Kích hoạt môi trường ảo Python
@@ -23,14 +25,18 @@ cd ~/Working/NATu/FaceRecognition-FAISS
 streamlit run app_streamlit.py
 
 ## Build lại file, thay đổi model
-[Vào folder face_recognition_sface_2021dec_ovx](./face_recognition_sface_2021dec_ovx), thay đổi file `FaceRecog_wrapper.cpp` để thay đổi đường dẫn các model, thay đổi cách tiền xử lý và hậu xử lý dữ liệu bên ngoài mô hình.
-[Vào folder FaceRecog_UI](./FaceRecog_UI) để thay đổi giao diện, cách quản lý các file thông tin người dùng.
-[Vào folder FaceRecognition_sface_pybind](./FaceRecognition_sface_pybind) để thêm các hàm mới cần dùng nếu có thêm hàm mới ở file `FaceRecog_wrapper.cpp`.
+Vào folder [face_recognition_sface_2021dec_ovx](./face_recognition_sface_2021dec_ovx), thay đổi file `FaceRecog_wrapper.cpp` để thay đổi đường dẫn các model, thay đổi cách tiền xử lý và hậu xử lý dữ liệu bên ngoài mô hình.
 
-Sau đó build lại file theo hướng dẫn trong [file README-FaceRecognition.txt](./README-FaceRecognition.txt)
+Vào folder [FaceRecog_UI](./FaceRecog_UI) để thay đổi giao diện, cách quản lý các file thông tin người dùng.
+
+Vào folder [FaceRecognition_sface_pybind](./FaceRecognition_sface_pybind) để thêm các hàm mới cần dùng nếu có thêm hàm mới ở file `FaceRecog_wrapper.cpp`.
+
+Sau đó build lại file theo hướng dẫn trong file [README-FaceRecognition.txt](./README-FaceRecognition.txt)
+
 # 🧑‍💻 Face Recognition Attendance System  
 
 Ứng dụng nhận diện khuôn mặt để điểm danh, quản lý người dùng và theo dõi lịch sử ra/vào.  
+
 Hệ thống hỗ trợ cấu hình ngưỡng nhận diện, lựa chọn nguồn camera (USB hoặc IP Cam), đồng thời ghi lại lịch sử truy cập để tiện theo dõi.  
 
 ---
