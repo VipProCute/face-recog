@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.org": "cpp",
+        "ratio": "cpp"
+    }
+}

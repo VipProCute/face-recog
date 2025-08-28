@@ -1,0 +1,5 @@
+/working/workspace/VNEMEX/SOM-VIP9000/FaceRecognition/models/FaceRecognition_sface_pybind/build/CMakeFiles/face_recognition_pybind.dir
+/working/workspace/VNEMEX/SOM-VIP9000/FaceRecognition/models/FaceRecognition_sface_pybind/build/CMakeFiles/edit_cache.dir
+/working/workspace/VNEMEX/SOM-VIP9000/FaceRecognition/models/FaceRecognition_sface_pybind/build/CMakeFiles/rebuild_cache.dir
+/working/workspace/VNEMEX/SOM-VIP9000/FaceRecognition/models/FaceRecognition_sface_pybind/build/pybind11/CMakeFiles/edit_cache.dir
+/working/workspace/VNEMEX/SOM-VIP9000/FaceRecognition/models/FaceRecognition_sface_pybind/build/pybind11/CMakeFiles/rebuild_cache.dir

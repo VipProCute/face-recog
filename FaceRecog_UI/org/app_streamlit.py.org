@@ -1,0 +1,177 @@
+import streamlit as st
+import cv2
+import numpy as np
+from camera import ThreadedCamera
+from user_management import UserManagement
+from face_recognition_module import FaceRecognition
+from access_history import AccessHistory
+import time
+
+st.set_page_config(page_title="Check-in System", layout="wide")
+
+# Session state for persistent variables
+if "camera" not in st.session_state:
+    st.session_state.camera = None
+if "stable_start_time" not in st.session_state:
+    st.session_state.stable_start_time = None
+if "last_center" not in st.session_state:
+    st.session_state.last_center = None
+if "recognized_this_session" not in st.session_state:
+    st.session_state.recognized_this_session = False
+
+
+user_management = UserManagement()
+face_recognition = FaceRecognition(known_faces_dir="user_data.json")
+access_history = AccessHistory()
+stable_threshold = 20  # pixels
+stable_duration = 1.2  # seconds
+
+def start_camera(cam_src):
+    try:
+        cam_index = int(cam_src)
+        st.session_state.camera = ThreadedCamera(cam_index)
+    except ValueError:
+        st.session_state.camera = ThreadedCamera(cam_src)
+    st.session_state.camera.start()
+
+def stop_camera():
+    if st.session_state.camera:
+        st.session_state.camera.stop()
+        st.session_state.camera = None
+
+def reset_users():
+    user_management.reset_users()
+    face_recognition.load_known_faces()
+    st.success("All users have been reset.")
+
+def register_user(name):
+    if not name:
+        st.warning("Please enter a name.")
+        return
+    if user_management.is_registered(name):
+        st.warning(f"{name} is already registered.")
+        return
+    frame = st.session_state.camera.get_frame()
+    if frame is not None:
+        small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+        rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
+        face_encodings = face_recognition.embed_faces(rgb_small_frame)
+        if face_encodings:
+            user_management.register_user(name, face_encodings)
+            face_recognition.load_known_faces()
+            access_history.log_access(name)
+            st.success(f"{name} registered successfully!")
+        else:
+            st.warning("No face detected. Please try again.")
+    else:
+        st.warning("Failed to capture image for registration.")
+
+def get_access_history():
+    history = access_history.get_history()
+    lines = []
+    for entry in history:
+        parts = entry.strip().split('\t')
+        if len(parts) == 2:
+            name, timestamp = parts
+            lines.append({"Name": name, "Timestamp": timestamp})
+        else:
+            lines.append({"Name": entry, "Timestamp": ""})
+    return lines
+
+def process_frame():
+    frame = st.session_state.camera.get_frame()
+    if frame is None:
+        return None, ""
+    small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+    rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
+    face_locations = face_recognition.face_locations(rgb_small_frame)
+    display_text = ""
+    now = time.time()
+    if face_locations:
+        (top, right, bottom, left) = face_locations[0]
+        top, right, bottom, left = top*2, right*2, bottom*2, left*2
+        center = ((left + right) // 2, (top + bottom) // 2)
+        if st.session_state.last_center is not None:
+            dist = ((center[0] - st.session_state.last_center[0]) ** 2 + (center[1] - st.session_state.last_center[1]) ** 2) ** 0.5
+        else:
+            dist = 0
+        if dist < stable_threshold:
+            if st.session_state.stable_start_time is None:
+                st.session_state.stable_start_time = now
+            elapsed = now - st.session_state.stable_start_time
+            remaining = max(0, stable_duration - elapsed)
+            if remaining > 0:
+                display_text = f"Do not move in {remaining:.2f}s"
+            else:
+                if not st.session_state.recognized_this_session:
+                    recognized_names = face_recognition.recognize_faces(
+                        rgb_small_frame, [face_locations[0]]
+                    )
+                    name = recognized_names[0] if recognized_names else "Unknown"
+                    access_history.log_access(name)
+                    st.session_state.recognized_this_session = True
+                    display_text = f"Recognized: {name}"
+                    st.success(f"Access logged: {name} at {time.strftime('%H:%M:%S')}")
+        else:
+            st.session_state.stable_start_time = now
+            st.session_state.recognized_this_session = False
+        st.session_state.last_center = center
+        cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+        cv2.putText(
+            frame, display_text, (left, top - 10),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2
+        )
+    else:
+        st.session_state.stable_start_time = None
+        st.session_state.last_center = None
+        st.session_state.recognized_this_session = False
+    return frame, display_text
+
+st.title("Check-in System")
+
+col1, col2 = st.columns([2, 1])
+
+with col2:
+    cam_src = st.text_input("Camera Source", value="0")
+    name = st.text_input("Name")
+    if st.button("Start Camera"):
+        stop_camera()
+        start_camera(cam_src)
+    if st.button("Register"):
+        if st.session_state.camera:
+            register_user(name)
+    if st.button("Reset Users"):
+        reset_users()
+    if st.button("Stop Camera"):
+        stop_camera()
+
+with col1:
+    st.subheader("Camera Feed")
+    frame_placeholder = st.empty()
+    text_placeholder = st.empty()
+    show_feed = st.checkbox("Show Camera Feed", value=True)
+
+if st.session_state.camera and show_feed:
+    import time
+    while True:
+        frame, display_text = process_frame()
+        if frame is not None:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_placeholder.image(frame_rgb, channels="RGB")
+            text_placeholder.info(display_text)
+        else:
+            frame_placeholder.warning("No frame available.")
+        # Add a small delay to avoid high CPU usage
+        time.sleep(0.05)
+        # Break the loop if the user unchecks the box or stops the camera
+        if not st.session_state.camera or not st.session_state.get("Show Camera Feed", True):
+            break
+else:
+    frame_placeholder.info("Camera not started.")
+
+st.subheader("Access History")
+history = get_access_history()
+if history:
+    st.table(history)
+else:
+    st.info("No access history yet.")
