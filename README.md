@@ -7,22 +7,22 @@ Tất cả đã được để trong folder FaceRecognition-FAISS
 ## 🚀 Hướng dẫn chạy ứng dụng
 
 
-# SSH vào máy server
+### SSH vào máy server
 ssh itri@10.60.3.235
 
-# Thiết lập biến môi trường
+### Thiết lập biến môi trường
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/itri/Working/prebuilt/opencv/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD
 
-# Kích hoạt môi trường ảo Python
+### Kích hoạt môi trường ảo Python
 cd ~/Working/Demo/
 source venv_3.8/bin/activate
 
-# Chạy ứng dụng Streamlit
+### Chạy ứng dụng Streamlit
 cd ~/Working/NATu/FaceRecognition-FAISS
 streamlit run app_streamlit.py
 
-##Build lại file, thay đổi model
+## Build lại file, thay đổi model
 [Vào folder face_recognition_sface_2021dec_ovx](./face_recognition_sface_2021dec_ovx), thay đổi file `FaceRecog_wrapper.cpp` để thay đổi đường dẫn các model, thay đổi cách tiền xử lý và hậu xử lý dữ liệu bên ngoài mô hình.
 [Vào folder FaceRecog_UI](./FaceRecog_UI) để thay đổi giao diện, cách quản lý các file thông tin người dùng.
 [Vào folder FaceRecognition_sface_pybind](./FaceRecognition_sface_pybind) để thêm các hàm mới cần dùng nếu có thêm hàm mới ở file `FaceRecog_wrapper.cpp`.
